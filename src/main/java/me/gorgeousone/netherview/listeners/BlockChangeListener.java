@@ -8,9 +8,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
-import com.comphenix.protocol.wrappers.ChunkCoordIntPair;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.MultiBlockChangeInfo;
 import com.comphenix.protocol.wrappers.WrappedBlockData;
 import me.gorgeousone.netherview.ConfigSettings;
 import me.gorgeousone.netherview.NetherViewPlugin;
@@ -24,7 +22,6 @@ import me.gorgeousone.netherview.handlers.PortalHandler;
 import me.gorgeousone.netherview.handlers.ViewHandler;
 import me.gorgeousone.netherview.packet.PacketHandler;
 import me.gorgeousone.netherview.portal.Portal;
-import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -173,42 +170,10 @@ public class BlockChangeListener implements Listener {
 						ProjectionCache viewedCache = session.getViewedPortalSide();
 						Map<BlockVec, BlockType> viewSession = session.getProjectedBlocks();
 						
-						if (VersionUtils.serverIsAtOrAbove("1.16.2")) {
-							rewriteProjectionBlockTypes1_16_2(packet, viewedPortal, viewedCache, viewSession);
-						} else {
-							rewriteProjectionBlockTypes(packet, viewedPortal, viewedCache, viewSession);
-						}
+				rewriteProjectionBlockTypes1_16_2(packet, viewedPortal, viewedCache, viewSession);
 					}
 				}
 		);
-	}
-	
-	private void rewriteProjectionBlockTypes(PacketContainer packet,
-	                                         Portal viewedPortal,
-	                                         ProjectionCache viewedCache,
-	                                         Map<BlockVec, BlockType> viewSession) {
-		
-		ChunkCoordIntPair chunkLoc = packet.getChunkCoordIntPairs().read(0);
-		int chunkWorldX = chunkLoc.getChunkX() << 4;
-		int chunkWorldZ = chunkLoc.getChunkZ() << 4;
-		
-		Object[] blockInfoArray = packet.getMultiBlockChangeInfoArrays().getValues().get(0);
-		
-		for (Object object : blockInfoArray) {
-			
-			MultiBlockChangeInfo blockInfo = (MultiBlockChangeInfo) object;
-			
-			BlockVec blockPos = new BlockVec(
-					blockInfo.getX() + chunkWorldX,
-					blockInfo.getY(),
-					blockInfo.getZ() + chunkWorldZ);
-			
-			if (getProjectedBlockType(blockPos, viewedPortal, viewedCache, viewSession) != null) {
-				blockInfo.setData(viewSession.get(blockPos).getWrapped());
-			}
-		}
-		
-		packet.getMultiBlockChangeInfoArrays().write(0, Arrays.copyOf(blockInfoArray, blockInfoArray.length, MultiBlockChangeInfo[].class));
 	}
 	
 	private void rewriteProjectionBlockTypes1_16_2(PacketContainer packet,

@@ -1,6 +1,5 @@
 package me.gorgeousone.netherview;
 
-import com.comphenix.protocol.ProtocolLib;
 import me.gorgeousone.netherview.bstats.Metrics;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
@@ -35,7 +34,6 @@ import me.gorgeousone.netherview.portal.PortalSerializer;
 import me.gorgeousone.netherview.updatechecks.UpdateCheck;
 import me.gorgeousone.netherview.utils.ConfigUtils;
 import me.gorgeousone.netherview.utils.VersionUtils;
-import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -68,7 +66,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 			ChatColor.LIGHT_PURPLE;
 	
 	private ConfigSettings configSettings;
-	private Material portalMaterial;
+	private Material portalMaterial = Material.NETHER_PORTAL;
 	
 	private PacketHandler packetHandler;
 	private PortalHandler portalHandler;
@@ -92,8 +90,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		registerTotalPortalsChart(metrics);
 		registerPortalsOnline(metrics);
 		
-		portalMaterial = VersionUtils.IS_LEGACY_SERVER ? Material.matchMaterial("PORTAL") : Material.NETHER_PORTAL;
-		BlockType.configureVersion(VersionUtils.IS_LEGACY_SERVER);
+		portalMaterial = Material.NETHER_PORTAL;
 		PortalLocator.configureVersion(portalMaterial);
 		
 		configSettings = new ConfigSettings(this, getConfig());
@@ -118,7 +115,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		protocolLib = getServer().getPluginManager().getPlugin("ProtocolLib");
 		
-		if (protocolLib == null || !(protocolLib instanceof ProtocolLib)) {
+		if (protocolLib == null) {
 			
 			MessageUtils.sendStaffInfo("Nether View disabled itself because of missing dependency ProtocolLib.");
 			getLogger().severe("====================================================");
@@ -132,13 +129,12 @@ public final class NetherViewPlugin extends JavaPlugin {
 		
 		String libVersion = protocolLib.getDescription().getVersion().split("-")[0];
 		
-		if (VersionUtils.serverIsAtOrAbove("1.16.2") && VersionUtils.isVersionLowerThan(libVersion, "4.6.0")) {
+		if (VersionUtils.isVersionLowerThan(libVersion, "5.0.0")) {
 			
-			MessageUtils.sendStaffInfo("Nether View disabled itself because ProtocolLib 4.6.0 or higher is required for servers running 1.16.2 and up.");
+			MessageUtils.sendStaffInfo("Nether View disabled itself because ProtocolLib 5.0.0 or higher is required for servers running 1.21.");
 			getLogger().severe("============================================================");
-			getLogger().severe("Error: For Minecraft 1.16.2 and up Nether View requires at");
-			getLogger().severe("least ProtocolLib 4.6.0. This version might be still be a");
-			getLogger().severe("development build which can be downloaded here:");
+			getLogger().severe("Error: For Minecraft 1.21 Nether View requires at");
+			getLogger().severe("least ProtocolLib 5.0.0.");
 			getLogger().severe("https://ci.dmulloy2.net/job/ProtocolLib/lastSuccessfulBuild/");
 			getLogger().severe("============================================================");
 			protocolLib = null;

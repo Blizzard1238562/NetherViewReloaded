@@ -6,15 +6,19 @@ public final class VersionUtils {
 	
 	private VersionUtils() {}
 	
-	public static final String VERSION_STRING = Bukkit.getServer().getClass().getName().split("\\.")[3];
+	private static final String MINECRAFT_VERSION;
 	private static final int[] CURRENT_VERSION_INTS = new int[3];
 	
-	static {
-		String versionStringNumbersOnly = VERSION_STRING.replaceAll("[a-zA-Z]", "");
-		System.arraycopy(getVersionAsIntArray(versionStringNumbersOnly, "_"), 0, CURRENT_VERSION_INTS, 0, 3);
-	}
+	public static final boolean IS_LEGACY_SERVER = false;
 	
-	public static final boolean IS_LEGACY_SERVER = !serverIsAtOrAbove("1.13.0");
+	static {
+		String fullVersion = Bukkit.getBukkitVersion();
+		String[] versionParts = fullVersion.split("-")[0].split("\\.");
+		for (int i = 0; i < Math.min(versionParts.length, 3); i++) {
+			CURRENT_VERSION_INTS[i] = Integer.parseInt(versionParts[i]);
+		}
+		MINECRAFT_VERSION = CURRENT_VERSION_INTS[0] + "." + CURRENT_VERSION_INTS[1] + "." + CURRENT_VERSION_INTS[2];
+	}
 	
 	public static boolean isVersionLowerThan(String currentVersion, String requestedVersion) {
 		

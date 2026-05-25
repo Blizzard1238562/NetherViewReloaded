@@ -1,7 +1,6 @@
 package me.gorgeousone.netherview;
 
 import me.gorgeousone.netherview.message.MessageUtils;
-import me.gorgeousone.netherview.utils.VersionUtils;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -133,17 +132,9 @@ public class ConfigSettings {
 	}
 	
 	public void addVersionSpecificDefaults(FileConfiguration config) {
-		
-		if (VersionUtils.IS_LEGACY_SERVER) {
-			config.addDefault("overworld-border", "stained_clay");
-			config.addDefault("nether-border", "stained_clay:14");
-			config.addDefault("end-border", "wool:15");
-			
-		} else {
-			config.addDefault("overworld-border", "white_terracotta");
-			config.addDefault("nether-border", "red_concrete");
-			config.addDefault("end-border", "black_concrete");
-		}
+		config.addDefault("overworld-border", "white_terracotta");
+		config.addDefault("nether-border", "red_concrete");
+		config.addDefault("end-border", "black_concrete");
 	}
 	
 	public void loadGeneralSettings(FileConfiguration config) {
