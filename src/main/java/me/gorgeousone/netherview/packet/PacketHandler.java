@@ -4,6 +4,8 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.injector.PacketConstructor;
+import com.comphenix.protocol.utility.MinecraftReflection;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.Pair;
@@ -13,6 +15,7 @@ import me.gorgeousone.netherview.blockcache.Transform;
 import me.gorgeousone.netherview.geometry.BlockVec;
 import me.gorgeousone.netherview.portal.ProjectionEntity;
 import me.gorgeousone.netherview.utils.FacingUtils;
+import me.gorgeousone.netherview.utils.NmsUtils;
 import me.gorgeousone.netherview.utils.TimeUtils;
 import me.gorgeousone.netherview.wrapper.WrappedBoundingBox;
 import me.gorgeousone.netherview.wrapper.blocktype.BlockType;
@@ -38,16 +41,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+//NetherViewReloaded! Updated for Minecraft 1.21+ by Blizzard1238562
 public class PacketHandler {
 	
 	private final ItemStack pumpkin = new ItemStack(Material.CARVED_PUMPKIN);
 	private final ProtocolManager protocolManager;
 	private final Set<Integer> markedPacketIds;
 	
+	private PacketConstructor entityHeadRotationPacket;
+	
 	public PacketHandler() {
 		
 		protocolManager = ProtocolLibrary.getProtocolManager();
 		markedPacketIds = new HashSet<>();
+		
+		Class<?> nmsEntityClass = MinecraftReflection.getMinecraftClass("world.entity.Entity");
+		entityHeadRotationPacket = protocolManager.createPacketConstructor(
+				PacketType.Play.Server.ENTITY_HEAD_ROTATION,
+				nmsEntityClass,
+				byte.class
+		);
 	}
 	
 	private void sendCustomPacket(Player player, PacketContainer packet) {
@@ -243,14 +256,14 @@ public class PacketHandler {
 			
 			case PLAYER:
 				sendPacket(player, createEntitySpawnPacket(entity, entityLoc, entityId));
-				sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
+				sendPacket(player, createHeadRotationForReal(entity, entityLoc.getYaw()));
 				showEquipment(player, (LivingEntity) entity, entityId, isProjection);
 				break;
 			
 			default:
 				if (entity instanceof LivingEntity) {
 					sendPacket(player, createEntitySpawnPacket(entity, entityLoc, entityId));
-					sendPacket(player, createHeadRotation(entity, entityLoc.getYaw()));
+					sendPacket(player, createHeadRotationForReal(entity, entityLoc.getYaw()));
 					showEquipment(player, (LivingEntity) entity, entityId, isProjection);
 				} else {
 					sendPacket(player, createEntitySpawnPacket(entity, entityLoc, entityId));
@@ -260,20 +273,16 @@ public class PacketHandler {
 		sendPacket(player, createMetadataPacket(entity));
 	}
 	
-	private PacketContainer createHeadRotation(Entity entity,
-	                                           float yaw) {
-		
-		PacketContainer headRotPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-		headRotPacket.getIntegers().write(0, entity.getEntityId());
-		headRotPacket.getBytes().write(0, (byte) (yaw * 265 / 360));
-		return headRotPacket;
+	private PacketContainer createHeadRotationForReal(Entity entity, float yaw) {
+		try {
+			Object nmsEntity = NmsUtils.getHandle(entity);
+			byte yawByte = (byte) (yaw * 256 / 360);
+			return entityHeadRotationPacket.createPacket(nmsEntity, yawByte);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to create head rotation packet", e);
+		}
 	}
 	
-	/**
-	 * Creates a spawn packet using the unified SPAWN_ENTITY packet (available since 1.20.2).
-	 * In 1.20.2+ Mojang merged NAMED_ENTITY_SPAWN, SPAWN_ENTITY_LIVING, and SPAWN_ENTITY_PAINTING
-	 * into the single SPAWN_ENTITY packet.
-	 */
 	private PacketContainer createEntitySpawnPacket(Entity entity,
 	                                                Location entityLoc,
 	                                                int entityId) {
@@ -284,7 +293,6 @@ public class PacketHandler {
 		spawnPacket.getEntityTypeModifier().write(0, entity.getType());
 		writeEntityPos(spawnPacket, entityLoc);
 		writeEntityAngle(spawnPacket, entityLoc);
-		// velocity data is optional in 1.21 SPAWN_ENTITY, leave default
 		return spawnPacket;
 	}
 	
@@ -349,12 +357,7 @@ public class PacketHandler {
 				.write(0, isOnGround)
 				.write(1, true);
 		
-		PacketContainer headRotPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
-		headRotPacket.getIntegers().write(0, entity.getFakeId());
-		headRotPacket.getBytes().write(0, (byte) (int) (newYaw * 265 / 360));
-		
 		sendPacket(player, moveLookPacket);
-		sendPacket(player, headRotPacket);
 	}
 	
 	private PacketContainer createMetadataPacket(Entity entity) {
