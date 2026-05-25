@@ -1,3 +1,7 @@
+THIS IS THE OLD README.MD FROM THE ORIGINAL PROJECT, I HAVE NOT UPDATED IT ON GITHUB YET!
+check modrinth for "sort-of" updated Version https://modrinth.com/plugin/netherviewreloaded
+
+
 ![Nether View](art/meltpoint-banner2.png)
 
 # Nether View
