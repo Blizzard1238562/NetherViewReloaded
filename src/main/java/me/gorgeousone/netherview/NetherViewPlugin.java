@@ -1,6 +1,7 @@
 package me.gorgeousone.netherview;
 
-import me.gorgeousone.netherview.bstats.Metrics;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SingleLineChart;
 import me.gorgeousone.netherview.cmdframework.command.ParentCommand;
 import me.gorgeousone.netherview.cmdframework.handlers.CommandHandler;
 import me.gorgeousone.netherview.commmands.FlipPortalCommand;
@@ -86,7 +87,7 @@ public final class NetherViewPlugin extends JavaPlugin {
 			return;
 		}
 		
-		Metrics metrics = new Metrics(this, 7571);
+		Metrics metrics = new Metrics(this, 31559);
 		registerTotalPortalsChart(metrics);
 		registerPortalsOnline(metrics);
 		
@@ -306,11 +307,11 @@ public final class NetherViewPlugin extends JavaPlugin {
 	}
 	
 	private void registerTotalPortalsChart(Metrics metrics) {
-		metrics.addCustomChart(new Metrics.SingleLineChart("total_portals", () -> portalHandler.getTotalPortalCount()));
+		metrics.addCustomChart(new SingleLineChart("total_portals", () -> portalHandler.getTotalPortalCount()));
 	}
 	
 	private void registerPortalsOnline(Metrics metrics) {
-		metrics.addCustomChart(new Metrics.SingleLineChart("portals_online", () -> portalHandler.getLoadedPortals().size()));
+		metrics.addCustomChart(new SingleLineChart("portals_online", () -> portalHandler.getLoadedPortals().size()));
 	}
 	
 	private void checkForUpdates() {
